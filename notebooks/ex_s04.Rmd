@@ -1,0 +1,75 @@
+# Ex. S04: Post defecation changes in FGCMs concentrations
+
+## Settings
+
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=TRUE, is_rmd=TRUE)
+```
+
+## Post defecation changes in FGCMs concentrations
+### Data
+```{r}
+df = read.csv("../data/post_defecation.csv")
+str(df)
+summary(df)
+```
+
+
+### Lines in one plot
+```{r, fig.width=7, fig.height=4}
+df$Time = factor(df$Time, levels = c("2", "4", "6", "8", "10", "12", "14"))
+df$ID = as.factor(df$ID)
+p = ggplot(data = df, aes(x=Time, y=Value, col=ID)) +
+  geom_line(aes(group=ID), size=0.5) +
+  geom_point(size=3.0) +
+  scale_y_continuous(breaks = seq(from=0, to=1400, by=200)) +
+  coord_cartesian(ylim=c(0, 1400)) +
+  labs(x="Time after defecation (h)", y="FGCMs conc. (ng/g wet)", col="Sample No.") +
+  theme(legend.position = "none") +
+  NULL
+print(p)
+
+df$Time = factor(df$Time, levels = c("2", "4", "6", "8", "10", "12", "14"))
+df$ID = as.factor(df$ID)
+p = ggplot(data = df, aes(x=Time, y=log(Value), col=ID)) +
+  geom_line(aes(group=ID), size=0.5) +
+  geom_point(size=3.0) +
+  scale_y_continuous(breaks = seq(from=0, to=12, by=1)) +
+  coord_cartesian(ylim=c(3.5, 9)) +
+  labs(x="Time after defecation (h)", y="log-FGCMs conc. (ng/g wet)", col="Sample No.") +
+  theme(legend.position = "none") +
+  NULL
+print(p)
+```
+
+
+### Percentage changes
+```{r, fig.width=7, fig.height=4}
+df = read.csv("../data/post_defecation.csv")
+# str(df)
+# summary(df)
+# length(df[,1])
+# print(df)
+df2 = df %>% 
+  group_by(Time) %>% 
+  summarize(mean = mean(Percentage),
+            sd = sd(Percentage))
+print(df2)
+p2 = ggplot(data = df2) +
+  geom_line(aes(x=Time, y=mean), col="#1f77b4", size=1.0) +
+  geom_point(aes(x=Time, y=mean), col="#1f77b4", size=3.0) +
+  geom_linerange(aes(x=Time, ymin=mean-sd, ymax=mean+sd), col="#1f77b4", size=1.0) +
+  geom_hline(yintercept=100, linetype="dashed") +
+  scale_x_continuous(breaks = seq(from=0, to=14, by=2)) +
+  scale_y_continuous(breaks = seq(from=0, to=250, by=50)) +
+  coord_cartesian(xlim=c(1.5, 14.5), ylim=c(0, 200)) +
+  labs(x="Time after defecation (h)", y="Percentage") +
+  NULL
+print(p2)
+```
+
+```{r}
+
+```
+

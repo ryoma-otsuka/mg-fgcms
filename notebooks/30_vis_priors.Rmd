@@ -1,0 +1,35 @@
+# Check priors
+
+## Settings
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=TRUE, is_rmd=TRUE)
+```
+
+
+## Priors
+
+### Normal(0, 10) for alpha and beta
+```{r, fig.width=5, fig.height=4}
+# priors | Normal(0, 10)
+samples = rnorm(1000, mean=0, sd=10)
+p = ggplot() +
+  geom_histogram(aes(samples), fill="#56B4E9", alpha=0.8) +
+  scale_x_continuous(breaks=seq(-100, 100, 10)) +
+  labs(title=expression(italic("Samples from Normal(0, 10)")), x="Value", y="Count") +
+  NULL
+print(p)
+```
+
+
+### Exponential(1) for sigma_u, sigma_Y
+```{r, fig.width=5, fig.height=4}
+# priors | Exponential(1)
+samples = rexp(1000, rate=1)
+p = ggplot() +
+  geom_histogram(aes(samples), fill="#56B4E9", alpha=0.8) +
+  scale_x_continuous(breaks=seq(-100, 100, 1)) +
+  labs(title=expression(italic("Samples from Exponential(1)")), x="Value", y="Count") +
+  NULL
+print(p)
+```

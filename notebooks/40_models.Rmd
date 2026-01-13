@@ -1,0 +1,188 @@
+# Models
+
+## Settings
+
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=TRUE, is_rmd=TRUE)
+```
+
+
+## Model Formula
+
+$$
+\begin{align}
+& u \sim\ \text{Normal}(0, sigma\_a)\ \tag{1}\\
+& Y\ \sim\ \text{Normal}(mu,sigma\_Y)\ \tag{2}\\
+& mu\hspace{2mm}=\hspace{2mm}Xb + a + u[GID]\tag{3}\\
+\end{align}
+$$
+
+
+## Model-R1 | Tourist number
+
+### MCMC Convergence Diagnosis
+
+#### Rhat
+```{r}
+# load model output
+fit_R01 = readRDS(file = '../output/model-output/lmm_R01.RData')
+is_ok = check_rhat(fit_R01, threshold_list=c(1.010, 1.005, 1.003))
+```
+
+#### Trace plot
+```{r, fig.width=13, fig.height=5, message = FALSE, warning = FALSE}
+# traceplot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_traceplot = vis_traceplot(fit_R01, parameters, 5)
+```
+
+#### Density
+```{r, fig.width=13, fig.height=5, message = FALSE, warning = FALSE}
+# kernel density plot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_density = vis_density(fit_R01, parameters, 5)
+```
+
+
+## Model-R2 | Tourist visit 
+
+### MCMC Convergence Diagnosis
+
+#### Rhat
+```{r}
+# load model output
+fit_R02 = readRDS(file = '../output/model-output/lmm_R02.RData')
+is_ok = check_rhat(fit_R02, threshold_list=c(1.010, 1.005, 1.003))
+```
+
+#### Trace plot
+```{r, fig.width=13, fig.height=5, message = FALSE, warning = FALSE}
+# traceplot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_traceplot = vis_traceplot(fit_R02, parameters, 5)
+```
+
+#### Density
+```{r, fig.width=13, fig.height=5, message = FALSE, warning = FALSE}
+# kernel density plot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_density = vis_density(fit_R02, parameters, 5)
+```
+
+
+## Model Comparison | WAIC and PSIS
+
+### rethinking::compare
+
+```{r}
+# load model output
+fit_R01 = readRDS(file = '../output/model-output/lmm_R01.RData')
+fit_R02 = readRDS(file = '../output/model-output/lmm_R02.RData')
+
+library(rethinking)
+# rethinking::WAIC(fit_R01)
+set.seed(1234)
+WAIC_comparison = rethinking::compare(fit_R01, fit_R02, sort="WAIC", func=WAIC)
+PSIS_comparison = rethinking::compare(fit_R01, fit_R02, sort="PSIS", func=PSIS)
+
+print(WAIC_comparison)
+print(PSIS_comparison)
+write.csv(WAIC_comparison, file="../output/table/waic_comparison.csv")
+write.csv(PSIS_comparison, file="../output/table/psis_comparison.csv")
+```
+
+In both WAIC and PSIS, the difference is about 16.7, with dSE was about
+5.7. So, the model 2 (fit_02_student) is better in terms of
+out-of-sample prediction accuracy.
+
+IF there some extreme observations, I may get a warning message like
+this: \> Some Pareto k values are high (\>0.5). Set pointwise=TRUE to
+inspect individual points.
+
+Just in case, let's check Pareto k and WAIC penalty for each model
+
+```{r, fig.width=6, fig.height=5}
+# Model 01
+set.seed(5678)
+WAIC_fit_R01 = rethinking::WAIC(fit_R01, pointwise=TRUE)
+PSIS_fit_R01 = rethinking::PSIS(fit_R01, pointwise=TRUE)
+
+df_plot = data.frame(
+  WAIC_penalty = WAIC_fit_R01$penalty,
+  PSIS_k = PSIS_fit_R01$k
+)
+
+df_plot = df_plot %>% 
+  dplyr::mutate(k_above_0.5 = ifelse(PSIS_k > 0.5, 1, 0))
+df_plot$k_above_0.5 = as.factor(df_plot$k_above_0.5)
+
+# plot WAIC penalty (xaxis) and PSIS Pareto k (y axis)
+ggplot(data = df_plot) +
+  geom_point(mapping=aes(x=PSIS_k, y=WAIC_penalty, col=k_above_0.5), size=2, shape=21, stroke=0.6, alpha=0.8) +
+  geom_vline(xintercept=0.50, linetype="dashed") +
+  scale_color_manual(values=c("#1f77b4", "black")) +
+  labs(x="PSIS Pareto k", y="WAIC penalty", title="Gaussian Model 1") +
+  theme(legend.position="none") +
+  coord_cartesian(x=c(-0.2, 0.6), ylim=c(0, 4.5)) +
+  NULL
+
+# Model 02
+set.seed(5678)
+WAIC_fit_R02 = rethinking::WAIC(fit_R02, pointwise=TRUE)
+PSIS_fit_R02 = rethinking::PSIS(fit_R02, pointwise=TRUE)
+
+df_plot = data.frame(
+  WAIC_penalty = WAIC_fit_R02$penalty,
+  PSIS_k = PSIS_fit_R02$k
+)
+
+df_plot = df_plot %>% 
+  dplyr::mutate(k_above_0.5 = ifelse(PSIS_k > 0.5, 1, 0))
+df_plot$k_above_0.5 = as.factor(df_plot$k_above_0.5)
+
+# plot WAIC penalty (xaxis) and PSIS Pareto k (y axis)
+ggplot(data = df_plot) +
+  geom_point(mapping=aes(x=PSIS_k, y=WAIC_penalty, col=k_above_0.5), size=2, shape=21, stroke=0.6, alpha=0.8) +
+  geom_vline(xintercept=0.50, linetype="dashed") +
+  scale_color_manual(values=c("#1f77b4", "black")) +
+  labs(x="PSIS Pareto k", y="WAIC penalty", title="Gaussian Model 2") +
+  theme(legend.position="none") +
+  coord_cartesian(x=c(-0.2, 0.6), ylim=c(0, 4.5)) +
+  NULL
+```
+
+There is no value that has both a very high Pareto k and a large WAIC penalty.
+
+
+
+## Model-RM | Sex + Age-Class + Group 
+
+### MCMC convergence diagnosis
+#### Rhat
+```{r}
+# load model output
+fit_RM01 = readRDS(file = '../output/model-output/lmm_RM.RData')
+is_ok = check_rhat(fit_RM01, threshold_list=c(1.010, 1.005, 1.003))
+```
+
+#### Trace plot
+```{r, fig.width=13, fig.height=3, message = FALSE, warning = FALSE}
+# traceplot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_traceplot = vis_traceplot(fit_RM01, parameters, 5)
+```
+
+#### Density
+```{r, fig.width=13, fig.height=3, message = FALSE, warning = FALSE}
+# kernel density plot
+parameters = c("b", "sigma_Y", "lp__")
+# parameters = c("a", "u", "sigma_u")
+p_density = vis_density(fit_RM01, parameters, 5)
+```
+

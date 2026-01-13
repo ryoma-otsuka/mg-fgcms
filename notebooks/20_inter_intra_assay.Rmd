@@ -1,0 +1,112 @@
+# Inter- & Intra-Assay Coefficient of Variation
+
+## Settings
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=FALSE, is_rmd=TRUE)
+```
+
+## Accuracy of measurement (CV)
+
+CV (Coefficient of Variation)  
+inter-assay %CV: The Average Coefficient of Variation from Plate Control (Control sample: CS) Means  
+intra-assay %CV: The Average Coefficient of Variation between Duplicates for all samples   
+
+
+## inter-assay %CV
+
+### 1. Data set
+```{r}
+# read data 
+df_inter = read.csv(file = "../data/inter_assay_cv.csv")
+
+# there must be 30 observations (30 plates)
+str(df_inter)
+
+# remove one plate (Plate_ID = 30)
+df_inter_2 = dplyr::filter(df_inter, X1st == 1)
+
+# there must be 29 observations (29 plates)
+str(df_inter_2)
+
+```
+
+We only use a column named "Mean_CS"  
+
+
+```{r}
+length(df_inter_2$Mean_CS)
+print(df_inter_2$Mean_CS)
+```
+
+
+
+### 2. Calculation
+```{r}
+# mean value of control sample for 29 plate (calculated as mean value of duplicates: Replicate 1 and 2)
+mean_CS = mean(df_inter_2$Mean_CS)
+print(mean_CS)
+
+# sd of mean value of control sample for 29 plate
+sd_of_mean_CS = sd(df_inter_2$Mean_CS)
+print(sd_of_mean_CS)
+
+# inter-assay %CV
+inter_assay_CV = (sd_of_mean_CS / mean_CS) * 100
+print(inter_assay_CV)
+paste("Inter-assay CV is", round(inter_assay_CV, digits = 2), "%")
+```
+
+[1] 5.645069
+[1] 1.063122
+[1] 18.83275
+[1] "Inter-assay CV is 18.83 %"
+
+
+## intra-assay %CV
+
+each sample were measured in duplicates (2 replicates)
+each sample has their %CV value
+
+intra-assay %CV is the average coefficient of variation between duplicates for all samples
+
+### 1. Data
+```{r}
+df_intra = read.csv("../data/intra_assay_cv.csv")
+str(df_intra)
+```
+
+### 2. Calculation
+```{r}
+mean_intra_assay_CV = mean(df_intra$X1st_.CV)
+paste("Mean intra-assay CV is", round(mean_intra_assay_CV, digits = 2), "%")
+median_intra_assay_CV = median(df_intra$X1st_.CV)
+paste("Median intra-assay CV is", round(median_intra_assay_CV, digits = 2), "%")
+```
+
+
+```{r, fig.width=4, fig.height=3}
+summary(df_intra$X1st_.CV)
+p = ggplot() + 
+  geom_histogram(aes(x=df_intra$X1st_.CV)) + 
+  labs(x="%CV", y="Count")
+print(p)
+```
+
+
+## Results
+```{r}
+results = data.frame(
+  inter_assay_CV = inter_assay_CV,
+  mean_intra_assay_CV = mean_intra_assay_CV,
+  median_intra_assay_CV = median_intra_assay_CV
+  
+)
+print(results)
+
+```
+
+```{r}
+
+```
+

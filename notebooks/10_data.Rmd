@@ -1,0 +1,472 @@
+# Data
+
+## Settings
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=FALSE, is_rmd=TRUE)
+
+library(cowplot)
+library(grid)
+
+COLOR = "#1E88E5"
+COLOR_BOX = COLOR
+COLOR_VIOLIN = "#555555"
+
+```
+
+
+## FGCMs
+```{r}
+df_raw = read.csv("../data/fgcms.csv")
+print(min(df_raw$FGCMs_ng_g_wet))
+print(nrow(df_raw))
+```
+
+### FGCMs
+```{r, fig.width=4, fig.height=3}
+df = df_raw %>%
+  dplyr::select(-c(Sample_ID)) %>%  # remove a colum of Date
+  dplyr::mutate(FGCMs = FGCMs_ng_g_wet) %>%
+  dplyr::mutate(log_FGCMs=log(FGCMs))  # add a new column (log transformed FGCMs concentration)
+str(df)
+length(df[,1])
+
+# histogram
+p1 = ggplot(df, aes(FGCMs)) + 
+  geom_histogram(binwidth=100, alpha=0.9, col="transparent", fill="#56B4E9") +
+  labs(x="FGCMs", y="Count") +
+  NULL
+print(p1)
+
+# histogram without outliers
+df1 = subset(df, FGCMs < 8000)
+p2 = ggplot(df1, aes(FGCMs)) +
+  geom_histogram(binwidth=20, alpha=0.9, col="transparent", fill="#56B4E9") +
+  labs(x="FGCMs", y="Count") +
+  NULL
+print(p2)
+```
+
+### log-FGCMs
+```{r, fig.width=4, fig.height=3}
+# log_fGCM
+p3 = ggplot(df, aes(log_FGCMs)) +
+  geom_histogram(binwidth=0.1, alpha=0.9, col="transparent", fill="#56B4E9") +
+  labs(x="log-FGCMs", y="Count") +
+  NULL
+
+# log_fGCM
+p4 = ggplot(df1, aes(log_FGCMs)) +
+  geom_histogram(binwidth=0.1, alpha=0.9, col="transparent", fill="#56B4E9") +
+  labs(x="log-FGCMs", y="Count") +
+  NULL
+```
+
+
+```{r, fig.width=10, fig.height=8}
+p1 = p1 + theme(axis.title.y = element_text(margin = margin(r = 30))) + theme(plot.margin = unit(c(5, 10, 10, 5), "mm")) + NULL
+p2 = p2 + theme(axis.title.y = element_text(margin = margin(r = 30))) + theme(plot.margin = unit(c(5, 10, 10, 5), "mm")) + NULL
+p3 = p3 + theme(axis.title.y = element_text(margin = margin(r = 30))) + theme(plot.margin = unit(c(5, 10, 10, 5), "mm")) + NULL
+p4 = p4 + theme(axis.title.y = element_text(margin = margin(r = 30))) + theme(plot.margin = unit(c(5, 10, 10, 5), "mm")) + NULL
+
+# Arrange four plots (p1, p2, p3, p4) in a 2x2 grid with labels
+p = cowplot::plot_grid(
+  p1, p2, p3, p4,
+  labels = c("(a)", "(b)", "(c)", "(d)"),  # Add labels to the plots
+  label_size = 18,                         # Set font size of labels
+  nrow = 2, ncol = 2,                      # Define layout as 2 rows, 2 columns
+  label_x = c(-0.03, -0.03, -0.03, -0.03), # Adjust x positions of labels
+  label_y = c(1.03, 1.03, 1.03, 1.03),     # Adjust y positions of labels
+  rel_widths = c(1, 1),                    # Set relative width of plots
+  rel_heights = c(1, 1),                   # Set relative heights of plots
+  align = "hv"                             # Align horizontally and vertically
+)
+
+# Apply additional styling to the combined plot
+p = p + theme(
+  plot.margin = margin(10, 10, 5, 10, unit = "mm"),           # Adjust plot margins
+  plot.background = element_rect(fill = "white", color = NA)  # Set background color as white
+)
+
+print(p)
+```
+
+
+
+```{r, fig.width=6, fig.height=4}
+print(exp(6))
+print(exp(9))
+
+data = data.frame(x = seq(1, 10000, length.out = 100))
+data$log_y = log(data$x)  # 自然対数
+p = ggplot(data, aes(x = x, y = log_y)) +
+  geom_line(color = "skyblue", linewidth=1.0) +
+  labs(x = "Original Value", y = "Log-Transformed Value") +
+  scale_x_continuous(limits = c(0, 10000)) +
+  scale_y_continuous(breaks = seq(0, 10, 2), limits = c(0, 10)) +
+  NULL
+print(p)
+```
+
+> Statistical Rethinking p.239 We use the logarithm of it, becaue the
+> logarithm of GDP is the magnitude of GDP. Since wealth generates
+> wealth, it tends to be exponentially related to anything that
+> increases it. This is like saying that the absolute distances in walth
+> grow increasingly large, as nations become wealthier. So when we work
+> with logarithms instead, we can work on a more evenly spaced scale of
+> magnitudes_ Regardless, keep in mind that a log trasnform loses no
+> information. It just changes what the model assumes about the shape of
+> the association between variables_ In this case, raw GDP is not
+> linearly associated with anything, because its exponential pattern.
+> But log GDP is linearly associated with lots of things_
+
+> "It just changes what the model assumes about the shape of the
+> association between variables_"
+
+Log transform log -
+<https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/log>
+
+> > log computes logarithms, by default natural logarithms, log10
+> > computes common (i.e., base 10) logarithms, and log2 computes binary
+> > (i.e., base 2) logarithms_ The general form log(x, base) computes
+> > logarithms with base base.
+
+
+```{r}
+log(10^3)   # natural logarithms
+log10(10^3) # common logarithms 
+```
+
+So, as we used the default log function without specifying any option
+(see the code in the chank below), we are using natural logarithms (log
+or ln) of FGCM concentrations_
+
+Shutt et al. 2014 also used ln.
+
+
+
+
+## Dataset
+
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=FALSE, is_rmd=TRUE)
+```
+
+### R group (Model-R1 & R2)
+```{r}
+path = "../data/fgcms.csv"
+df = load_and_preprocess_data(path, group_list=c("R"))
+```
+
+```{r}
+t = table(df$Gorilla_ID)
+# write.csv(t, file="../output/table/model_r1_r2_gorillas.csv")
+```
+
+```{r}
+# Group by Sex
+table(df$Group, df$Sex)
+```
+
+```{r}
+# Group by Age-Category
+table(df$Group, df$Age_Category)
+```
+
+```{r}
+# Group by Tourist visit
+table(df$Group, df$Tourist_visit)
+```
+
+#### Tourist number
+```{r, fig.width=5, fig.height=4}
+# Tourist number Log
+ggplot(data=df, aes(x=Tourist_number_2d , y=log_FGCMs)) +
+  geom_point(shape=21, size=2.0, col="#1f77b4") +
+  scale_x_continuous(breaks=seq(from=0, to=24, by=2)) +
+  coord_cartesian(xlim=c(4.0, 23.0), ylim=c(3.5, 7.5)) +
+  labs(x="Tourist number", y="log-fGCMs (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+```
+
+```{r, fig.width=4, fig.height=3}
+ggplot(data=df, aes(x=Tourist_number_2d)) +
+  geom_histogram(binwidth=1, fill="steelblue", col="white", alphat=0.8) +
+  scale_x_continuous(breaks=seq(0, 24, by=2)) +
+  labs(x="Tourist number", y="Frequency") +
+  NULL
+```
+
+
+```{r, fig.width=4, fig.height=3}
+df_daily_num <- df %>%
+  distinct(Date, Tourist_number_2d)
+print(summary(df_daily_num))
+
+ggplot(data=df_daily_num, aes(x=Tourist_number_2d)) +
+  geom_histogram(binwidth=1, fill="steelblue", col="white", alphat=0.8) +
+  scale_x_continuous(breaks=seq(0, 24, by=2)) +
+  labs(x = "Tourist number", y = "Number of Days") +
+  NULL
+```
+
+
+
+
+#### Tourist visit
+
+```{r, fig.width=5, fig.height=4}
+# Tourist visit
+df$Tourist_visit = factor(df$Tourist_visit_2d, levels=c("1", "2", "3"))
+ggplot(data=df, aes(x=Tourist_visit , y=log_FGCMs, colour=Tourist_visit)) +
+  geom_violin(col=NA, fill=COLOR_VIOLIN, alpha=0.2, width=0.5, scale="width", position=position_nudge(x=-0.0)) +
+  geom_boxplot(col=COLOR_BOX, outlier.colour=NA, size=0.6, width=0.1, position=position_nudge(x=0.2)) +
+  geom_jitter(width=0.1, size=1.5, alpha=0.6, col=COLOR, shape=21) +
+  coord_cartesian(ylim=c(3.5, 7.5)) +
+  labs(x="Number of tourist visit", y="log-fGCMs (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+```{r, fig.width=4, fig.height=3}
+ggplot(data=df, aes(x=Tourist_visit, fill=Tourist_visit)) +
+  geom_bar(col="transparent", fill="steelblue", alpha=0.8) +
+  labs(x="Number of tourist visit", y="Count") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+```{r, fig.width=4, fig.height=3}
+df_daily_visit <- df %>%
+  distinct(Date, Tourist_visit_2d) %>%
+  mutate(Tourist_visit_2d = factor(Tourist_visit_2d))
+
+print(summary(df_daily_visit))
+
+ggplot(data=df_daily_visit, aes(x=Tourist_visit_2d, fill=Tourist_visit_2d)) +
+  geom_bar(col="transparent", fill="steelblue", alpha=0.8) +
+  labs(x = "Tourist visit category", y = "Number of Days") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+### R & M group (Model-RM)
+```{r}
+path = "../data/fgcms.csv"
+df = load_and_preprocess_data(path, group_list=c("R", "M"))
+```
+
+
+```{r}
+name_order = c(
+  "Barekye", "Buzinza", "Kabukojo", "Kabunga", "Kankwehe",
+  "Kanyindo", "Kanywani", "Karembezi", "Kibande",
+  "Masanyu", "Mitunu", "Munyana", "Nyampazi",
+  "Rushokye", "Ruterana", 
+  "Karungi", "Kisho", "Kikombe", "Maraya", "Twesiime")
+df$Gorilla_ID = factor(df$Gorilla_ID, levels=name_order)
+t = table(df$Gorilla_ID)
+print(t)
+write.csv(t, file="../output/table/model_rm_gorillas.csv")
+```
+
+```{r}
+# Group by Sex
+table(df$Group, df$Sex)
+```
+
+```{r}
+# Group by Age-Category
+table(df$Group, df$Age_Category)
+```
+
+```{r, fig.width=4, fig.height=4}
+df_daily_group_num <- df %>%
+  distinct(Date, Tourist_number_2d, Group)
+
+print(summary(df_daily_group_num))
+
+ggplot(data=df_daily_group_num, aes(x=Tourist_number_2d, fill=Group)) +
+  geom_histogram(binwidth = 1, col = "white", alpha = 0.8) +
+  facet_wrap(~Group, ncol = 1) + 
+  scale_fill_manual(values = c("M" = "#009E73", "R" = "#1E88E5")) +
+  scale_x_continuous(breaks=seq(0, 24, by=2)) +
+  labs(x = "Tourist number", y = "Number of Days") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+## Filtering test
+
+### R group
+
+#### Data Preprocessing
+```{r}
+# remove some rows that you don't need
+df2_R = dplyr::filter(
+  df1, 
+  Year %in% c("2018"),                                      # remove 2017 samples
+  Sex %in% c("F", "M"),                                     # remove NA in Sex
+  Age_Class %in% c("SB", "BB", "AdF", "SAd", "Juv", "Inf"), # remove NA in Class
+  Group %in% c("R"),                                        # remove M, H, and K group
+  Place %in% c("Trail"),                                    # remove Nest samples
+  !is.na(Tourist_number_2d),                                # remove NA
+  !is.na(Tourist_visit_2d),                                 # remove NA
+  !is.na(Mean_temp),                                        # remove NA
+) 
+
+summary(df2_R$Gorilla_ID)
+summary(df2_R)
+length(df2_R[,1])
+str(df2_R)
+
+# GID
+df2_R = convert_gorilla_id_char_to_int(df2_R, c("R"))
+
+# Sex
+df2_R = df2_R %>% dplyr::mutate(
+  Sex = ifelse(Sex == "F", "Female", "Male"))
+df2_R$Sex = factor(df2_R$Sex, levels=c("Female", "Male"))
+
+# Age category
+df2_R$Age_Class = factor(df2_R$Age_Class, levels=c("SB", "BB", "AdF", "SAd", "Inf")) # re-define factor levels (remove Juv, we don't have any Juv, Juv was included in SAd)
+df2_R = df2_R %>% dplyr::mutate(
+  Age_Category = ifelse(Age_Class == "Inf", "Infant", "Adult")) # Kanyindo was above 8-year-old and Kanyindo was still about 7 but we classified him as adult here
+
+df2_R$Age_Category = factor(df2_R$Age_Category, levels=c("Adult", "Infant")) # re-define factor levels
+
+# Adjust factor levels for Tourist visit
+df2_R$Tourist_visit = as.factor(df2_R$Tourist_visit)
+
+# show summary
+summary(df2_R)
+```
+
+
+```{r}
+# Centering + Scaling
+df2_R_scaled = df2_R %>%
+  dplyr::mutate(
+    s_Tourist_number = (Tourist_number_2d - mean(Tourist_number_2d)) / sd(Tourist_number_2d),
+    s_Mean_temp = (Mean_temp - mean(Mean_temp)) / sd(Mean_temp)
+  )
+
+summary(df2_R_scaled)
+length(df2_R_scaled$Gorilla_ID)
+
+mean(df2_R_scaled$FGCMs)
+sd(df2_R_scaled$FGCMs)
+quantile(df2_R_scaled$FGCMs, probs=c(0.00, 0.25, 0.50, 0.75, 1.00))
+
+mean(df2_R_scaled$log_FGCMs)
+sd(df2_R_scaled$log_FGCMs)
+quantile(df2_R_scaled$log_FGCMs, probs=c(0.00, 0.25, 0.50, 0.75, 1.00))
+
+```
+
+
+
+### Visualization
+
+#### Socio-demographic data
+
+```{r, fig.width=4, fig.height=3}
+# histogram of FGCMs
+ggplot(data=df2_R_scaled, aes(FGCMs)) +
+  geom_histogram(binwidth=50, alpha=1.0, col="transparent", fill="skyblue3") +
+  NULL
+
+# log_fGCM
+ggplot(data=df2_R_scaled, aes(log_FGCMs)) +
+  geom_histogram(binwidth=0.1, alpha=0.9, col="transparent", fill="#317589") +
+  NULL
+
+# Sex
+ggplot(data=df2_R_scaled, aes(x=Sex , y=log_FGCMs, colour=Sex)) +
+  geom_violin(col="#1f77b4") + geom_boxplot(outlier.colour=NA, width=0.3, col="#1f77b4") +
+  coord_cartesian(ylim=c(3.5, 7.5)) +
+  labs(x='Sex', y="log FGCM conc. (ng/g wet)") +
+  NULL
+
+# Age-Class
+ggplot(df2_R_scaled, aes(x=Age_Class , y=log_FGCMs, colour=Class)) +
+  geom_violin(col="#1f77b4") + geom_boxplot(outlier.colour=NA, width=0.3, col="#1f77b4") +
+  labs(x='Age-Class', y="log FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+
+# Age_Category
+ggplot(data=df2_R_scaled, aes(x=Age_Category , y=log_FGCMs)) +
+  geom_violin(col="#1f77b4") + geom_boxplot(outlier.colour=NA, width=0.3, col="#1f77b4") +
+  coord_cartesian(ylim=c(3.5, 7.5)) +
+  labs(x='Age Category', y="log FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+#### Time
+```{r, fig.width=6, fig.height=5}
+# AM.PM
+ggplot(data=df2_R_scaled, aes(x=AM_PM , y=log_FGCMs, colour=AM_PM)) +
+  geom_violin() + geom_boxplot(outlier.colour=NA, width=0.3) +
+  xlab('Collection time') +
+  NULL
+```
+
+
+#### Ecological factors
+```{r, fig.width=4, fig.height=3}
+ggplot(data=df2_R_scaled, aes(x=Mean_temp , y=log_FGCMs)) +
+  geom_point(shape=21, size=1.5, col="#1f77b4") +
+  labs(x="Mean temperature", y="log FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+#### Tourism indicators
+```{r, fig.width=4, fig.height=3}
+# Tourist number
+ggplot(df2_R_scaled, aes(x=Tourist_number_2d , y=FGCMs)) +
+  geom_point(shape=21, size=2.0, col="#1f77b4") +
+  scale_x_continuous(breaks=seq(from=0, to=24, by=2)) +
+  labs(x="Tourist number", y="FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+
+# Tourist number Log
+ggplot(data=df2_R_scaled, aes(x=Tourist_number_2d , y=log_FGCMs)) +
+  geom_point(shape=21, size=2.0, col="#1f77b4") +
+  scale_x_continuous(breaks=seq(from=0, to=24, by=2)) +
+  coord_cartesian(xlim=c(4.0, 23.0), ylim=c(3.5, 7.5)) +
+  labs(x="Tourist number", y="log FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+
+# Tourist visit
+df2_R_scaled$Tourist_visit_2d = factor(df2_R_scaled$Tourist_visit_2d, levels=c("1", "2", "3"))
+ggplot(data=df2_R_scaled, aes(x=Tourist_visit_2d , y=FGCMs, colour=Tourist_visit_2d)) +
+  geom_violin(col="#1f77b4") + geom_boxplot(outlier.colour=NA, width=0.25, col="#1f77b4") +
+  labs(x="Number of tourist visit", y="FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+
+# Tourist visit
+df2_R_scaled$Tourist_visit_2d = factor(df2_R_scaled$Tourist_visit_2d, levels=c("1", "2", "3"))
+ggplot(data=df2_R_scaled, aes(x=Tourist_visit_2d , y=log_FGCMs, colour=Tourist_visit_2d)) +
+  geom_violin(col="#1f77b4") + geom_boxplot(outlier.colour=NA, width=0.25, col="#1f77b4") +
+  labs(x="Number of tourist visit", y="FGCM conc. (ng/g wet)") +
+  theme(legend.position="none") +
+  NULL
+```
+
+
+
+

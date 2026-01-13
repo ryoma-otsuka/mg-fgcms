@@ -1,0 +1,26 @@
+# Versions
+
+## R version
+```{r}
+print(R.version)
+```
+
+## R citation
+```{r}
+citation()
+```
+
+## Stan and Rstan
+```{r}
+# https://github.com/stan-dev/stan/releases/tag/v2.21.0
+library(rstan)
+print(sprintf("Stan %s", rstan::stan_version())) # Stan version
+print(sprintf("RStan %s", packageVersion("rstan"))) # RStan version
+```
+
+## Stan and Rstan
+```{r}
+# https://github.com/rmcelreath/rethinking
+library(rethinking)
+print(sprintf("rethinking %s", packageVersion("rethinking")))
+```

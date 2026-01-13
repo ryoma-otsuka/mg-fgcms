@@ -1,0 +1,103 @@
+# Ex. S02: No filter v.s. Filter
+
+## Settings
+```{r setup, include=FALSE}
+source("../src/utils.R")
+setup(use_stan=TRUE, is_rmd=TRUE)
+```
+
+## Filter vs Non-filter
+This is to see if there is a difference between 2 extraction methods: with filter and without filter.
+## Data
+```{r}
+df = read.csv("../data/no_filter_filter.csv")
+print(str(df))
+stan_data = list(N = length(df[,1]), Y1 = log(df$No_filter), Y2 = log(df$Filter))
+```
+
+```{r}
+df2 = prep_df_slope(df, exp_type='filter')
+print(summary(df2))
+print(nrow(df2))
+print(nrow(df2)/2)
+print(table(df2$Difference)/2)
+print( (table(df2$Difference)/2) / (nrow(df2)/2) * 100, 4)
+```
+
+
+## Bayesian model
+```{r}
+# compile model
+stan_model = rstan::stan_model(file="../models/bayesian_paired_t_test.stan")
+
+# sampling
+fit = rstan::sampling(
+  object = stan_model,
+  data = stan_data,
+  seed = 1234,
+  chains = 4, 
+  iter = 4000, 
+  warmup = 2000, 
+  thin = 1,
+  open_progress = FALSE,
+  control=list(adapt_delta=0.99, max_treedepth=10),
+)
+
+# Save output
+saveRDS(object = fit, file = "../output/model-output/ex_s02.RData")
+```
+
+
+## MCMC Convergence Diagnosis
+
+### Rhat
+```{r}
+# load model output
+fit = readRDS(file = "../output/model-output/ex_s02.RData")
+is_ok = check_rhat(fit, threshold_list=c(1.010, 1.005, 1.003))
+```
+
+### Trace plot
+```{r, fig.width=12, fig.height=3, message = FALSE, warning = FALSE}
+# traceplot
+parameters = c("mu", "sigma", "lp__")
+p_traceplot = vis_traceplot(fit, parameters, 5)
+```
+
+### Density
+```{r, fig.width=12, fig.height=3, message = FALSE, warning = FALSE}
+# kernel density plot
+parameters = c("mu", "sigma", "lp__")
+p_density = vis_density(fit, parameters, 5)
+```
+
+
+## Posterior summary
+```{r}
+# Print summary of posteriors (Mean, se_mean, sd, Median, 89% BCI, 97% BCI)
+params = c("mu", "sigma", "lp__") # Specify parameters to print
+print(fit, pars = params, probs = c(0.015, 0.055, 0.500, 0.945, 0.985), digits_summary = 3)
+```
+
+## mu
+```{r}
+summary_fit = summary(fit, pars = "mu", probs = c(0.015, 0.055, 0.500, 0.945, 0.985))
+mu_median = summary_fit$summary["mu", "50%"]
+mu_lower = summary_fit$summary["mu", "1.5%"]
+mu_upper = summary_fit$summary["mu", "98.5%"]
+print(sprintf("MED (lower-upper): %.3f (%.3f-%.3f)", mu_median, mu_lower, mu_upper))
+```
+
+## sigma
+```{r}
+summary_fit = summary(fit, pars = "sigma", probs = c(0.015, 0.055, 0.500, 0.945, 0.985))
+mu_median = summary_fit$summary["sigma", "50%"]
+mu_lower = summary_fit$summary["sigma", "1.5%"]
+mu_upper = summary_fit$summary["sigma", "98.5%"]
+print(sprintf("MED (lower-upper): %.3f (%.3f-%.3f)", mu_median, mu_lower, mu_upper))
+```
+
+
+```{r}
+
+```
