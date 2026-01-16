@@ -50,7 +50,7 @@ All data files used in this paper are available in the [./data/](./data/) direct
 ## Usage
 ### Bayesian Statistical Modelling
 Main models (Model-R1, R2, and RM) are defined in:
-- [./models/multilevel_linear_model.stan]("./models/multilevel_linear_model.stan").   
+- [./models/multilevel_linear_model.stan](./models/multilevel_linear_model.stan).   
 
 To run the analysis, execute the following scripts:
 ```R
@@ -61,14 +61,14 @@ source("run_model_rm.R")
 
 ### Convergence diagnosis and model comparison
 Analysis of MCMC chains, model diagnostics (e.g., R-hat), and model comparison (e.g., WAIC) can be found in:
-- [./notebooks/40_models.Rmd]("./notebooks/40_models.Rmd").
+- [./notebooks/40_models.Rmd](./notebooks/40_models.Rmd).
 
 ### Supplementary Experiment S1-3
-- Model: [./models/bayesian_paired_t_test.stan]("./models/bayesian_paired_t_test.stan") 
-- Notebooks: [./notebooks/ex_s01.Rmd]("./notebooks/ex_s01.Rmd") to [./notebooks/ex_s03.Rmd]("./notebooks/ex_s04.Rmd")   
+- Model: [./models/bayesian_paired_t_test.stan](./models/bayesian_paired_t_test.stan) 
+- Notebooks: [./notebooks/ex_s01.Rmd](./notebooks/ex_s01.Rmd), [./notebooks/ex_s02.Rmd](./notebooks/ex_s02.Rmd), [./notebooks/ex_s03.Rmd](./notebooks/ex_s03.Rmd)   
 
 ### Visualization
-Scripts for generating figures are located in the [./fig/]("./fig/") directory.
+Scripts for generating figures are located in the [./fig/](./fig/) directory.
 
 ## Author
 **Ryoma Otsuka** | [Website](URL) | [GitHub](URL) | [Google Scholar](URL) |
