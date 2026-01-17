@@ -1,7 +1,7 @@
 # mg-fgcms
 
 This repository contains the data and code for the following paper:
-> Otsuka, R., Kalema-Zikusoka, G., Yamakoshi, G., & Kinoshita, K. (2026). Tourism impacts on fecal glucocorticoid metabolites of free-ranging mountain gorillas in Bwindi Impenetrable National Park, Uganda. *bioRxiv*. [Preprint].
+> Otsuka, R., Kalema-Zikusoka, G., Yamakoshi, G., & Kinoshita, K. (2026). Tourism impacts on fecal glucocorticoid metabolites of free-ranging mountain gorillas in Bwindi Impenetrable National Park, Uganda. *bioRxiv*. [Preprint](https://www.biorxiv.org/content/10.64898/2026.01.15.699166v1).
 
 ## Project Overview
 This study investigates how tourism affects the stress levels (measured via fecal glucocorticoid metabolites, fGCMs) of mountain gorillas in Bwindi using Bayesian multilevel models.
@@ -79,12 +79,11 @@ Scripts for generating figures are located in the [./fig/](./fig/) directory.
 @article{otsuka2026fgcms,
   author    = {Otsuka, Ryoma and Kalema-Zikusoka, Gladys and Yamakoshi, Gen and Kinoshita, Kodzue},
   title     = {Tourism impacts on fecal glucocorticoid metabolites of free-ranging mountain gorillas in {Bwindi Impenetrable National Park}, {Uganda}},
-  elocation-id = {2026.XX.XX.XXXXXX},
   year      = {2026},
-  doi       = {10.1101/2026.XX.XX.XXXXXX},
+  doi       = {10.64898/2026.01.15.699166v1},
   publisher = {Cold Spring Harbor Laboratory},
   journal   = {bioRxiv},
-  URL       = {https://www.biorxiv.org/content/early/2026/01/06/2026.XX.XX.XXXXXX},
+  URL       = {https://www.biorxiv.org/content/10.64898/2026.01.15.699166v1},
   note      = {Preprint}
 }
 ```
